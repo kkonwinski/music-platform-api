@@ -1,0 +1,39 @@
+version: '3.4'
+services:
+  mysql:
+    image: mysql/mysql-server:5.7
+    container_name: music_mysql
+    networks:
+      default:
+        ipv4_address: 192.168.2.3
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: music
+      MYSQL_USER: music
+      MYSQL_PASSWORD: music
+    ports:
+      - '9906:3306'
+  web:
+    build: ./.docker
+    container_name: music_web
+    networks:
+      default:
+        ipv4_address: 192.168.2.2
+    volumes:
+      - ./:/var/www/html/
+      - ./.docker/virtualhost.conf:/etc/apache2/sites-available/000-default.conf
+    ports:
+      - '81:80'
+    depends_on:
+      - 'mysql'
+
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.2.0/24
+
