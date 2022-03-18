@@ -27,6 +27,11 @@ class Track
      */
     private $url;
 
+    /**
+     * @ORM\ManyToOne(targetEntity=Album::class, inversedBy="tracks")
+     */
+    private $album;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -52,6 +57,18 @@ class Track
     public function setUrl(?string $url): self
     {
         $this->url = $url;
+
+        return $this;
+    }
+
+    public function getAlbum(): ?Album
+    {
+        return $this->album;
+    }
+
+    public function setAlbum(?Album $album): self
+    {
+        $this->album = $album;
 
         return $this;
     }
