@@ -73,4 +73,25 @@ class TrackRepository extends ServiceEntityRepository
         ;
     }
     */
+    public function findTracks()
+    {
+        return $this->createQueryBuilder('t')
+            ->select("t", "a")
+            ->leftJoin("t.album", "a")
+            ->orderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
+
+    public function findTrackById($id)
+    {
+        return $this->createQueryBuilder('t')
+            ->select("t", "a")
+            ->leftJoin("t.album", "a")
+            ->andWhere('t.id = :val')
+            ->setParameter('val', $id)
+            ->orderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 }

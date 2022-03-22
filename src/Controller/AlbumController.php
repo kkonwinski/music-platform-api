@@ -7,6 +7,8 @@ use App\Entity\Band;
 use App\Repository\AlbumRepository;
 use App\Repository\BandRepository;
 use App\Service\FileUpload;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -89,7 +91,11 @@ class AlbumController extends AbstractController
     public function remove(Album $album): JsonResponse
     {
 
-        $this->albumRepository->remove($album);
+        try {
+            $this->albumRepository->remove($album);
+        } catch (OptimisticLockException | ORMException $e) {
+            $this->json($e->getMessage());
+        }
 
         return new JsonResponse(["message" => "Album deleted!!!"], Response::HTTP_OK);
     }

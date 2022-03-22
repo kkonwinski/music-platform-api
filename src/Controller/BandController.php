@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Band;
-use App\Repository\BandRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,11 +18,11 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class BandController extends AbstractController
 {
-    private BandRepository $bandRepository;
+    private EntityManagerInterface $entityManager;
 
-    public function __construct(BandRepository $bandRepository)
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $this->bandRepository = $bandRepository;
+        $this->entityManager = $entityManager;
     }
 
     /**
@@ -35,7 +37,7 @@ class BandController extends AbstractController
             throw new NotFoundHttpException('Expecting mandatory parameters!');
         }
         $band = new Band();
-        $this->bandRepository->add($band->setName($name));
+        $this->entityManager->getRepository(Band::class)->add($band->setName($name));
         return new JsonResponse(['message' => 'Band created'], Response::HTTP_CREATED);
     }
 
@@ -48,7 +50,7 @@ class BandController extends AbstractController
             throw new NotFoundHttpException('Expecting mandatory parameters!');
         }
         /** @var $band Band */
-        $band = $this->bandRepository->findBandsById($id);
+        $band = $this->entityManager->getRepository(Band::class)->findBandsById($id);
 
         return new JsonResponse($band, Response::HTTP_OK);
     }
@@ -59,7 +61,7 @@ class BandController extends AbstractController
     public function all(): JsonResponse
     {
         /** @var $band Band */
-        $bands = $this->bandRepository->findBands();
+        $bands = $this->entityManager->getRepository(Band::class)->findBands();
 
         return new JsonResponse($bands, Response::HTTP_OK);
     }
@@ -70,9 +72,12 @@ class BandController extends AbstractController
     public function remove(Band $band): JsonResponse
     {
 
+        try {
+            $this->entityManager->getRepository(Band::class)->remove($band);
+        } catch (OptimisticLockException | ORMException $e) {
+            $this->json($e->getMessage());
+        }
 
-        $this->bandRepository->remove($band);
-
-        return new JsonResponse(['message'=>"Band deleted!!!"], Response::HTTP_OK);
+        return new JsonResponse(['message' => "Band deleted!!!"], Response::HTTP_OK);
     }
 }
