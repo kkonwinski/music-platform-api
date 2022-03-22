@@ -44,7 +44,27 @@ class AlbumRepository extends ServiceEntityRepository
             $this->_em->flush();
         }
     }
+    public function findAlbums()
+    {
+        return $this->createQueryBuilder('a')
+            ->select("a", "b")
+            ->leftJoin("a.band", "b")
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
 
+    public function findAlbumById($id)
+    {
+        return $this->createQueryBuilder('a')
+            ->select("a", "b")
+            ->leftJoin("a.band", "b")
+            ->andWhere('a.id = :val')
+            ->setParameter('val', $id)
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult();
+    }
     // /**
     //  * @return Album[] Returns an array of Album objects
     //  */

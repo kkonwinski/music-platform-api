@@ -29,13 +29,13 @@ class BandController extends AbstractController
     public function add(Request $request): JsonResponse
     {
 
-        $data = json_decode($request->getContent(), true);
-        $bandName = $data['name'];
-        if (empty($bandName)) {
+        $name = $request->request->get("name");
+
+        if (empty($name)) {
             throw new NotFoundHttpException('Expecting mandatory parameters!');
         }
         $band = new Band();
-        $this->bandRepository->add($band->setName($bandName));
+        $this->bandRepository->add($band->setName($name));
         return new JsonResponse(['message' => 'Band created'], Response::HTTP_CREATED);
     }
 
@@ -44,6 +44,9 @@ class BandController extends AbstractController
      */
     public function get($id): JsonResponse
     {
+        if (empty($id)) {
+            throw new NotFoundHttpException('Expecting mandatory parameters!');
+        }
         /** @var $band Band */
         $band = $this->bandRepository->findBandsById($id);
 
@@ -62,14 +65,13 @@ class BandController extends AbstractController
     }
 
     /**
-     * @Route("/remove/{id}", name="api_band_remove", methods={"DELETE"})
+     * @Route("/remove/{band}", name="api_band_remove", methods={"DELETE"})
      */
-    public function remove($id): JsonResponse
+    public function remove(Band $band): JsonResponse
     {
-        /** @var $bandToRemove Band */
-        $bandToRemove = $this->bandRepository->findOneBy(['id'=>$id]) ;
 
-        $this->bandRepository->remove($bandToRemove);
+
+        $this->bandRepository->remove($band);
 
         return new JsonResponse(['message'=>"Band deleted!!!"], Response::HTTP_OK);
     }
