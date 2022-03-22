@@ -44,11 +44,13 @@ class AlbumRepository extends ServiceEntityRepository
             $this->_em->flush();
         }
     }
+
     public function findAlbums()
     {
         return $this->createQueryBuilder('a')
-            ->select("a", "b")
+            ->select("a", "b", "t")
             ->leftJoin("a.band", "b")
+            ->leftJoin("a.tracks", "t")
             ->orderBy('a.id', 'ASC')
             ->getQuery()
             ->getArrayResult();
@@ -57,8 +59,9 @@ class AlbumRepository extends ServiceEntityRepository
     public function findAlbumById($id)
     {
         return $this->createQueryBuilder('a')
-            ->select("a", "b")
+            ->select("a", "b", "t")
             ->leftJoin("a.band", "b")
+            ->leftJoin("a.tracks", "t")
             ->andWhere('a.id = :val')
             ->setParameter('val', $id)
             ->orderBy('a.id', 'ASC')

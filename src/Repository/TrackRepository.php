@@ -51,10 +51,10 @@ class TrackRepository extends ServiceEntityRepository
     /*
     public function findByExampleField($value)
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('t.id', 'ASC')
+        return $this->createQueryBuilder("t")
+            ->andWhere("t.exampleField = :val")
+            ->setParameter("val", $value)
+            ->orderBy("t.id", "ASC")
             ->setMaxResults(10)
             ->getQuery()
             ->getResult()
@@ -65,9 +65,9 @@ class TrackRepository extends ServiceEntityRepository
     /*
     public function findOneBySomeField($value): ?Track
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
+        return $this->createQueryBuilder("t")
+            ->andWhere("t.exampleField = :val")
+            ->setParameter("val", $value)
             ->getQuery()
             ->getOneOrNullResult()
         ;
@@ -75,22 +75,24 @@ class TrackRepository extends ServiceEntityRepository
     */
     public function findTracks()
     {
-        return $this->createQueryBuilder('t')
-            ->select("t", "a")
+        return $this->createQueryBuilder("t")
+            ->select("t", "a", "b")
             ->leftJoin("t.album", "a")
-            ->orderBy('t.id', 'ASC')
+            ->leftJoin("a.band", "b")
+            ->orderBy("t.id", "ASC")
             ->getQuery()
             ->getArrayResult();
     }
 
     public function findTrackById($id)
     {
-        return $this->createQueryBuilder('t')
-            ->select("t", "a")
+        return $this->createQueryBuilder("t")
+            ->select("t", "a", "b")
             ->leftJoin("t.album", "a")
-            ->andWhere('t.id = :val')
-            ->setParameter('val', $id)
-            ->orderBy('t.id', 'ASC')
+            ->leftJoin("a.band", "b")
+            ->andWhere("t.id = :val")
+            ->setParameter("val", $id)
+            ->orderBy("t.id", "ASC")
             ->getQuery()
             ->getArrayResult();
     }
