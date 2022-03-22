@@ -25,7 +25,7 @@ class Band
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity=Album::class, mappedBy="band")
+     * @ORM\OneToMany(targetEntity=Album::class, mappedBy="band", cascade={"persist","remove"})
      */
     private $albums;
 

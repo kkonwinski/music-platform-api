@@ -48,20 +48,30 @@ class BandRepository extends ServiceEntityRepository
     // /**
     //  * @return Band[] Returns an array of Band objects
     //  */
-    /*
-    public function findByExampleField($value)
+
+    public function findBands()
     {
         return $this->createQueryBuilder('b')
-            ->andWhere('b.exampleField = :val')
-            ->setParameter('val', $value)
+        ->select("b","a")
+            ->leftJoin("b.albums", "a")
             ->orderBy('b.id', 'ASC')
-            ->setMaxResults(10)
             ->getQuery()
-            ->getResult()
+            ->getArrayResult()
         ;
     }
-    */
 
+    public function findBandsById($id)
+    {
+        return $this->createQueryBuilder('b')
+            ->select("b","a")
+            ->leftJoin("b.albums", "a")
+            ->andWhere('b.id = :val')
+            ->setParameter('val', $id)
+            ->orderBy('b.id', 'ASC')
+            ->getQuery()
+            ->getArrayResult()
+            ;
+    }
     /*
     public function findOneBySomeField($value): ?Band
     {
