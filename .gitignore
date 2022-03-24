@@ -1,4 +1,3 @@
-
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -14,3 +13,7 @@
 /phpcs.xml
 ###< squizlabs/php_codesniffer ###
 /public/uploads
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt
+###< lexik/jwt-authentication-bundle ###
