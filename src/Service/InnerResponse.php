@@ -15,15 +15,18 @@ class InnerResponse
 
     public function fetchAllAlbums(): string
     {
-
         $hostName = $_SERVER["HOSTNAME"];
-        
-        $urlAddress = sprintf("http://%s/api/album/all", $hostName);
 
+        $token = $this->getJwtToken($hostName);
+
+
+        $urlAddress = sprintf("http://%s/api/album/all", $hostName);
         $response = $this->client->request(
             'GET',
             $urlAddress,
+
             [
+                "auth_bearer" => $token["token"],
                 'headers' => [
                     'Accept' => 'application/json',
                 ],
@@ -31,5 +34,23 @@ class InnerResponse
         );
 
         return $response->getContent();
+    }
+
+    public function getJwtToken($hostName)
+    {
+
+
+        $urlAddress = sprintf("http://%s/api/login_check", $hostName);
+
+        return $this->client->request(
+            'POST',
+            $urlAddress,
+            [
+                'body' => ["username" => "test@test.pl", "password" => "1234"],
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]
+        );
     }
 }
