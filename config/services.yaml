@@ -25,3 +25,6 @@ services:
     App\Service\FileUpload:
         arguments:
             $targetDirectory: '%file_directory%'
+    App\MessageHandler\PromotedEmailMessageHandler:
+        arguments:
+            $emailTo: '%env(SEND_EMAIL_TO)%'

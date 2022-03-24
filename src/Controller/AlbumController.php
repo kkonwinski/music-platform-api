@@ -4,9 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Album;
 use App\Entity\Band;
-use App\Repository\AlbumRepository;
-use App\Repository\BandRepository;
+use App\Message\PromotedEmailMessage;
 use App\Service\FileUpload;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -21,22 +22,24 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class AlbumController extends AbstractController
 {
-    private AlbumRepository $albumRepository;
 
-    public function __construct(AlbumRepository $albumRepository)
+    private EntityManagerInterface $entityManager;
+
+    public function __construct(EntityManagerInterface $entityManager)
     {
-        $this->albumRepository = $albumRepository;
+        $this->entityManager = $entityManager;
     }
 
     /**
      * @Route("/add", name="api_album_new", methods={"POST"})
      */
-    public function add(Request $request, FileUpload $fileUpload, BandRepository $bandRepository): JsonResponse
+    public function add(Request $request, FileUpload $fileUpload, MessageBusInterface $bus): JsonResponse
     {
         $title = $request->request->get("title");
         $year = $request->request->get("year");
         $cover = $request->files->get("cover");
         $bandId = (int)$request->request->get("band");
+        $isPromoted = $request->request->get("isPromoted");
         if (empty($title) || empty($year) || empty($cover) || empty($bandId)) {
             throw new NotFoundHttpException("Expecting mandatory parameters!");
         }
@@ -44,19 +47,27 @@ class AlbumController extends AbstractController
         $fileName = $fileUpload->upload($request->files->get("cover"));
 
 
-        $bandObject = $bandRepository->findOneBy(["id" => $bandId]);
+        $bandObject = $this->entityManager->getRepository(Band::class)->findOneBy(["id" => $bandId]);
         if (!$bandObject) {
             throw new NotFoundHttpException("User not found!!!");
         }
         $album = new Album();
         $album->setTitle($title);
         $album->setCover($fileName);
-        if ($request->request->get("isPromoted") !== null) {
-            $album->setIsPromoted((bool)$request->request->get("isPromoted"));
-        }
+
         $album->setYear($year);
         $album->setBand($bandObject);
-        $this->albumRepository->add($album);
+
+        if ($isPromoted !== null) {
+            $album->setIsPromoted((bool)$isPromoted);
+        }
+        $this->entityManager->getRepository(Album::class)->add($album);
+
+        if ($isPromoted === null) {
+            $bus->dispatch(new PromotedEmailMessage($album->getId()));
+        }
+
+
         return new JsonResponse(["message" => "Album created"], Response::HTTP_CREATED);
     }
 
@@ -69,7 +80,7 @@ class AlbumController extends AbstractController
             throw new NotFoundHttpException("Expecting mandatory parameters!");
         }
         /** @var $album Album */
-        $album = $this->albumRepository->findAlbumById($id);
+        $album = $this->entityManager->getRepository(Album::class)->findAlbumById($id);
 
         return new JsonResponse($album, Response::HTTP_OK);
     }
@@ -80,7 +91,7 @@ class AlbumController extends AbstractController
     public function all(): JsonResponse
     {
         /** @var $album Album */
-        $albums = $this->albumRepository->findAlbums();
+        $albums = $this->entityManager->getRepository(Album::class)->findAlbums();
 
         return new JsonResponse($albums, Response::HTTP_OK);
     }
@@ -92,8 +103,8 @@ class AlbumController extends AbstractController
     {
 
         try {
-            $this->albumRepository->remove($album);
-        } catch (OptimisticLockException | ORMException $e) {
+            $this->entityManager->getRepository(Album::class)->remove($album);
+        } catch (OptimisticLockException|ORMException $e) {
             $this->json($e->getMessage());
         }
 

@@ -1,0 +1,11 @@
+framework:
+  messenger:
+    failure_transport: failed
+    transports:
+      async: "%env(MESSENGER_TRANSPORT_DSN)%"
+      failed: 'doctrine://default?queue_name=failed'
+      sync: 'sync://'
+
+    routing:
+      # async is whatever name you gave your transport above
+      App\Message\PromotedEmailMessage: async
